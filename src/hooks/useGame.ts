@@ -20,7 +20,8 @@ const INITIAL_STATE: GameState = {
   },
   calendar: {
     events: []
-  }
+  },
+  manifestations: []
 };
 
 export function useGame() {
@@ -176,7 +177,6 @@ ${light
           phase: 'dream_state',
           dreamState: { isActive: true, dreamText: dreamContent }
         }));
-        // Add the dream content as a message too, but styled differently in the UI if needed
         addMessage('ai', dreamContent);
       } else if (response.includes('[DREAM_END]')) {
          const wakeContent = response.replace('[DREAM_END]', '').trim();
@@ -186,6 +186,34 @@ ${light
           dreamState: { isActive: false, dreamText: null }
         }));
         addMessage('ai', wakeContent);
+      } else if (response.includes('[MANIFEST]')) {
+        // Extract manifestation
+        const match = response.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
+        let cleanResponse = response.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
+        
+        if (match && match[1]) {
+          try {
+            const manifestationData = JSON.parse(match[1]);
+            const newManifestation = {
+              id: Date.now().toString(),
+              ...manifestationData,
+              timestamp: Date.now()
+            };
+            
+            setState(prev => ({
+              ...prev,
+              manifestations: [...prev.manifestations, newManifestation]
+            }));
+            
+            addMessage('system', `✨ ${state.aiName} has created something new: ${manifestationData.name}`);
+          } catch (e) {
+            console.error("Failed to parse manifestation", e);
+          }
+        }
+        
+        if (cleanResponse) {
+          addMessage('ai', cleanResponse);
+        }
       } else {
         addMessage('ai', response || "...");
       }
@@ -234,6 +262,33 @@ ${light
             dreamState: { isActive: true, dreamText: dreamContent }
             }));
             addMessage('ai', dreamContent);
+        } else if (response.includes('[MANIFEST]')) {
+            const match = response.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
+            let cleanResponse = response.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
+            
+            if (match && match[1]) {
+              try {
+                const manifestationData = JSON.parse(match[1]);
+                const newManifestation = {
+                  id: Date.now().toString(),
+                  ...manifestationData,
+                  timestamp: Date.now()
+                };
+                
+                setState(prev => ({
+                  ...prev,
+                  manifestations: [...prev.manifestations, newManifestation]
+                }));
+                
+                addMessage('system', `✨ ${state.aiName} has created something new: ${manifestationData.name}`);
+              } catch (e) {
+                console.error("Failed to parse manifestation", e);
+              }
+            }
+            
+            if (cleanResponse) {
+              addMessage('ai', cleanResponse);
+            }
         } else {
             addMessage('ai', response);
         }
@@ -326,6 +381,12 @@ ${light
     }));
   };
 
+  const [showManifestations, setShowManifestations] = useState(false);
+
+  const toggleManifestations = () => {
+    setShowManifestations(prev => !prev);
+  };
+
   return {
     state,
     setUserName,
@@ -342,6 +403,8 @@ ${light
     toggleCalendar,
     addCalendarEvent,
     toggleEventCompletion,
-    deleteEvent
+    deleteEvent,
+    showManifestations,
+    toggleManifestations
   };
 }

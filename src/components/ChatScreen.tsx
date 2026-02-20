@@ -8,12 +8,13 @@ interface ChatScreenProps {
   onSendMessage: (text: string) => void;
   onOpenMemoryGarden: () => void;
   onOpenCalendar: () => void;
+  onOpenManifestations: () => void;
   onTriggerConversation: () => void;
   isTyping: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onTriggerConversation, isTyping, messagesEndRef }: ChatScreenProps) {
+export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onOpenManifestations, onTriggerConversation, isTyping, messagesEndRef }: ChatScreenProps) {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,6 +50,13 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
             >
               <Calendar className="w-3 h-3" />
               <span>Time</span>
+            </button>
+            <button 
+              onClick={onOpenManifestations}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-purple-200/80 uppercase tracking-wider"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Gifts</span>
             </button>
             <button 
               onClick={onOpenMemoryGarden}

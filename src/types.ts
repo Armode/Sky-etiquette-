@@ -28,6 +28,17 @@ export interface CalendarEvent {
   isCompleted: boolean;
 }
 
+export interface Manifestation {
+  id: string;
+  name: string;
+  description: string;
+  visual: {
+    type: 'orb' | 'star' | 'crystal' | 'flower';
+    color: string; // Hex code or tailwind color name
+  };
+  timestamp: number;
+}
+
 export interface GameState {
   phase: GamePhase;
   userName: string;
@@ -43,6 +54,7 @@ export interface GameState {
   calendar: {
     events: CalendarEvent[];
   };
+  manifestations: Manifestation[];
 }
 
 export interface ChatMessage {
