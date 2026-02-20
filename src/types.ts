@@ -2,6 +2,8 @@ export interface Memory {
   id: string;
   text: string;
   timestamp: number;
+  emotion?: string;
+  reflection?: string;
 }
 
 export interface CoreMemory {
@@ -18,6 +20,14 @@ export type GamePhase =
   | 'dream_state'
   | 'farewell';
 
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string; // ISO date string YYYY-MM-DD
+  description?: string;
+  isCompleted: boolean;
+}
+
 export interface GameState {
   phase: GamePhase;
   userName: string;
@@ -29,6 +39,9 @@ export interface GameState {
   dreamState: {
     isActive: boolean;
     dreamText: string | null;
+  };
+  calendar: {
+    events: CalendarEvent[];
   };
 }
 

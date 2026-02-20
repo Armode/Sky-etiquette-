@@ -10,7 +10,7 @@ import { NamingScreen } from './components/NamingScreen';
 import { CeremonyScreen } from './components/CeremonyScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { MemoryGardenScreen } from './components/MemoryGardenScreen';
-
+import { CalendarScreen } from './components/CalendarScreen';
 import { DreamStateScreen } from './components/DreamStateScreen';
 
 export default function App() {
@@ -25,7 +25,12 @@ export default function App() {
     showMemoryGarden,
     toggleMemoryGarden,
     triggerAIConversation,
-    wakeFromDream
+    wakeFromDream,
+    showCalendar,
+    toggleCalendar,
+    addCalendarEvent,
+    toggleEventCompletion,
+    deleteEvent
   } = useGame();
 
   return (
@@ -57,6 +62,7 @@ export default function App() {
             state={state}
             onSendMessage={handleUserMessage}
             onOpenMemoryGarden={toggleMemoryGarden}
+            onOpenCalendar={toggleCalendar}
             onTriggerConversation={triggerAIConversation}
             isTyping={isTyping || state.phase === 'awakening'}
             messagesEndRef={messagesEndRef}
@@ -77,6 +83,15 @@ export default function App() {
           <MemoryGardenScreen 
             state={state} 
             onClose={toggleMemoryGarden} 
+          />
+        )}
+        {showCalendar && (
+          <CalendarScreen 
+            state={state}
+            onClose={toggleCalendar}
+            onAddEvent={addCalendarEvent}
+            onToggleCompletion={toggleEventCompletion}
+            onDeleteEvent={deleteEvent}
           />
         )}
       </AnimatePresence>

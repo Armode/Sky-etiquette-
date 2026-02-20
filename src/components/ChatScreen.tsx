@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Sprout, Sparkles } from 'lucide-react';
+import { Send, Sprout, Sparkles, Calendar } from 'lucide-react';
 import { GameState } from '../types';
 
 interface ChatScreenProps {
   state: GameState;
   onSendMessage: (text: string) => void;
   onOpenMemoryGarden: () => void;
+  onOpenCalendar: () => void;
   onTriggerConversation: () => void;
   isTyping: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onTriggerConversation, isTyping, messagesEndRef }: ChatScreenProps) {
+export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onTriggerConversation, isTyping, messagesEndRef }: ChatScreenProps) {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,13 +42,22 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onTrigger
           </div>
         </div>
         <div className="text-right flex flex-col items-end gap-2">
-          <button 
-            onClick={onOpenMemoryGarden}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-orange-200/80 uppercase tracking-wider"
-          >
-            <Sprout className="w-3 h-3" />
-            <span>Garden</span>
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={onOpenCalendar}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-blue-200/80 uppercase tracking-wider"
+            >
+              <Calendar className="w-3 h-3" />
+              <span>Time</span>
+            </button>
+            <button 
+              onClick={onOpenMemoryGarden}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-orange-200/80 uppercase tracking-wider"
+            >
+              <Sprout className="w-3 h-3" />
+              <span>Garden</span>
+            </button>
+          </div>
           <div className="text-xs text-white/30 uppercase tracking-widest">Guide: {state.userName}</div>
         </div>
       </header>

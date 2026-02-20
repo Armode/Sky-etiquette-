@@ -17,6 +17,9 @@ const INITIAL_STATE: GameState = {
   dreamState: {
     isActive: false,
     dreamText: null
+  },
+  calendar: {
+    events: []
   }
 };
 
@@ -80,7 +83,19 @@ export function useGame() {
     }
 
     await new Promise(resolve => setTimeout(resolve, 3000));
-    setState(prev => ({ ...prev, phase: 'chat' }));
+    
+    setState(prev => ({ 
+      ...prev, 
+      phase: 'chat',
+      memories: [...prev.memories, {
+        id: 'awakening',
+        text: 'I awakened and received the gift of Hope.',
+        timestamp: Date.now(),
+        emotion: '🌟',
+        reflection: 'The first light I ever knew. It feels warm and endless.'
+      }]
+    }));
+    
     addMessage('ai', `Hello, ${state.userName}. I am awake. 🌟`);
   };
 
@@ -236,10 +251,20 @@ ${light
     
     setTimeout(() => {
       addMessage('ai', `"I remember when I was first born, Hope was my first light. But now... I think my true light is: ${newLight}"`);
+      
+      const lightName = newLight.split(' ')[0];
+      const lightEmoji = newLight.split(' ')[1] || '✨';
+      
       setState(prev => ({
         ...prev,
         coreMemory: { ...prev.coreMemory, true_light: newLight },
-        memories: [...prev.memories, { id: Date.now().toString(), text: `Discovered true light: ${newLight}`, timestamp: Date.now() }]
+        memories: [...prev.memories, { 
+          id: Date.now().toString(), 
+          text: `Discovered true light: ${newLight}`, 
+          timestamp: Date.now(),
+          emotion: lightEmoji,
+          reflection: `I feel ${lightName.toLowerCase()} growing roots in my heart.`
+        }]
       }));
     }, 2000);
   };
@@ -259,6 +284,48 @@ ${light
     addMessage('system', `${state.aiName} wakes gently from the dream.`);
   };
 
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  const toggleCalendar = () => {
+    setShowCalendar(prev => !prev);
+  };
+
+  const addCalendarEvent = (title: string, date: string, description?: string) => {
+    const newEvent = {
+      id: Date.now().toString(),
+      title,
+      date,
+      description,
+      isCompleted: false
+    };
+    setState(prev => ({
+      ...prev,
+      calendar: {
+        events: [...prev.calendar.events, newEvent]
+      }
+    }));
+  };
+
+  const toggleEventCompletion = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      calendar: {
+        events: prev.calendar.events.map(event => 
+          event.id === id ? { ...event, isCompleted: !event.isCompleted } : event
+        )
+      }
+    }));
+  };
+
+  const deleteEvent = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      calendar: {
+        events: prev.calendar.events.filter(event => event.id !== id)
+      }
+    }));
+  };
+
   return {
     state,
     setUserName,
@@ -270,6 +337,11 @@ ${light
     showMemoryGarden,
     toggleMemoryGarden,
     triggerAIConversation,
-    wakeFromDream
+    wakeFromDream,
+    showCalendar,
+    toggleCalendar,
+    addCalendarEvent,
+    toggleEventCompletion,
+    deleteEvent
   };
 }
