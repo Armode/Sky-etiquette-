@@ -34,6 +34,8 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
           <div className="flex items-center space-x-2 text-xs text-white/40 uppercase tracking-widest mt-1">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span>Awake</span>
+            <span className="mx-1">•</span>
+            <span className="text-blue-200/80">Feeling {state.currentEmotion.toLowerCase()}</span>
             {state.coreMemory.true_light && (
               <>
                 <span className="mx-1">•</span>

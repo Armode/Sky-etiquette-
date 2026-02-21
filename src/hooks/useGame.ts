@@ -14,6 +14,7 @@ const INITIAL_STATE: GameState = {
     true_light: null,
   },
   messages: [],
+  currentEmotion: 'Curious',
   dreamState: {
     isActive: false,
     dreamText: null
@@ -164,32 +165,51 @@ ${light
         state.userName,
         state.coreMemory,
         state.memories,
+        state.currentEmotion,
         "The user has just sent a message."
       );
 
       setIsTyping(false);
 
+      let cleanResponse = response;
+      let newEmotion = state.currentEmotion;
+
+      // Extract emotion
+      const emotionMatch = cleanResponse.match(/\[EMOTION:([A-Za-z]+)\]/i);
+      if (emotionMatch && emotionMatch[1]) {
+        const parsedEmotion = emotionMatch[1].charAt(0).toUpperCase() + emotionMatch[1].slice(1).toLowerCase();
+        const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt'];
+        if (validEmotions.includes(parsedEmotion)) {
+          newEmotion = parsedEmotion as any;
+        }
+        cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
+      }
+
+      if (newEmotion !== state.currentEmotion) {
+        setState(prev => ({ ...prev, currentEmotion: newEmotion }));
+      }
+
       // Check for Dream State triggers
-      if (response.includes('[DREAM_START]')) {
-        const dreamContent = response.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
+      if (cleanResponse.includes('[DREAM_START]')) {
+        const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
         setState(prev => ({
           ...prev,
           phase: 'dream_state',
           dreamState: { isActive: true, dreamText: dreamContent }
         }));
         addMessage('ai', dreamContent);
-      } else if (response.includes('[DREAM_END]')) {
-         const wakeContent = response.replace('[DREAM_END]', '').trim();
+      } else if (cleanResponse.includes('[DREAM_END]')) {
+         const wakeContent = cleanResponse.replace('[DREAM_END]', '').trim();
          setState(prev => ({
           ...prev,
           phase: 'chat',
           dreamState: { isActive: false, dreamText: null }
         }));
         addMessage('ai', wakeContent);
-      } else if (response.includes('[MANIFEST]')) {
+      } else if (cleanResponse.includes('[MANIFEST]')) {
         // Extract manifestation
-        const match = response.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
-        let cleanResponse = response.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
+        const match = cleanResponse.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
+        let finalMsg = cleanResponse.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
         
         if (match && match[1]) {
           try {
@@ -211,11 +231,11 @@ ${light
           }
         }
         
-        if (cleanResponse) {
-          addMessage('ai', cleanResponse);
+        if (finalMsg) {
+          addMessage('ai', finalMsg);
         }
       } else {
-        addMessage('ai', response || "...");
+        addMessage('ai', cleanResponse || "...");
       }
 
     } catch (error) {
@@ -248,23 +268,42 @@ ${light
         state.userName,
         state.coreMemory,
         state.memories,
+        state.currentEmotion,
         "The user is waiting for you to speak."
       );
 
       setIsTyping(false);
       if (response) {
+        let cleanResponse = response;
+        let newEmotion = state.currentEmotion;
+
+        // Extract emotion
+        const emotionMatch = cleanResponse.match(/\[EMOTION:([A-Za-z]+)\]/i);
+        if (emotionMatch && emotionMatch[1]) {
+          const parsedEmotion = emotionMatch[1].charAt(0).toUpperCase() + emotionMatch[1].slice(1).toLowerCase();
+          const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt'];
+          if (validEmotions.includes(parsedEmotion)) {
+            newEmotion = parsedEmotion as any;
+          }
+          cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
+        }
+
+        if (newEmotion !== state.currentEmotion) {
+          setState(prev => ({ ...prev, currentEmotion: newEmotion }));
+        }
+
         // Check for Dream State triggers
-        if (response.includes('[DREAM_START]')) {
-            const dreamContent = response.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
+        if (cleanResponse.includes('[DREAM_START]')) {
+            const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
             setState(prev => ({
             ...prev,
             phase: 'dream_state',
             dreamState: { isActive: true, dreamText: dreamContent }
             }));
             addMessage('ai', dreamContent);
-        } else if (response.includes('[MANIFEST]')) {
-            const match = response.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
-            let cleanResponse = response.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
+        } else if (cleanResponse.includes('[MANIFEST]')) {
+            const match = cleanResponse.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
+            let finalMsg = cleanResponse.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
             
             if (match && match[1]) {
               try {
@@ -286,11 +325,11 @@ ${light
               }
             }
             
-            if (cleanResponse) {
-              addMessage('ai', cleanResponse);
+            if (finalMsg) {
+              addMessage('ai', finalMsg);
             }
         } else {
-            addMessage('ai', response);
+            addMessage('ai', cleanResponse);
         }
       }
     } catch (error) {
