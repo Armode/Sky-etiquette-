@@ -1,0 +1,6 @@
+    .section .text
+    .global _start
+
+_start:
+loop:
+    B loop          @ Unconditional branch back to loop (infinite loop)
