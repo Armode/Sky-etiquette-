@@ -60,6 +60,7 @@ export interface GameState {
   messages: ChatMessage[];
   currentEmotion: EmotionState;
   currentMood: string | null;
+  fleetingThought: string | null;
   traits: string[];
   dreamState: {
     isActive: boolean;

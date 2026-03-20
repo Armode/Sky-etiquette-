@@ -157,14 +157,26 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
         
         {isTyping && (
           <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
           >
-            <div className="bg-orange-900/10 rounded-2xl px-6 py-4 border border-orange-500/5 flex items-center space-x-2">
-              <div className="w-2 h-2 bg-orange-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 bg-orange-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2 h-2 bg-orange-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-orange-900/10 rounded-2xl px-6 py-4 border border-orange-500/5 flex flex-col space-y-2 relative">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-orange-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-orange-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-orange-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              {state.fleetingThought && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-xs italic text-orange-300/50 font-serif"
+                >
+                  {state.fleetingThought}
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}

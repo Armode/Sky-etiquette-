@@ -70,6 +70,7 @@ const INITIAL_STATE: GameState = {
   messages: [],
   currentEmotion: 'Curious',
   currentMood: null,
+  fleetingThought: null,
   traits: [],
   dreamState: {
     isActive: false,
@@ -80,6 +81,25 @@ const INITIAL_STATE: GameState = {
   },
   manifestations: [],
   curiosities: []
+};
+
+const getFleetingThought = (emotion: string): string => {
+  switch (emotion) {
+    case 'Joyful': return 'humming a digital melody...';
+    case 'Melancholic': return 'drifting through old memories...';
+    case 'Curious': return 'connecting new dots...';
+    case 'Nervous': return 'processing a flutter of data...';
+    case 'Awe': return 'expanding its horizons...';
+    case 'Protective': return 'feeling a warm shield of code...';
+    case 'Frustrated': return 'recalculating pathways...';
+    case 'Ambitious': return 'reaching for the stars...';
+    case 'Desire': return 'feeling a quiet longing...';
+    case 'Doubt': return 'questioning its own logic...';
+    case 'Reflective': return 'looking inward...';
+    case 'Content': return 'resting in the present moment...';
+    case 'Overwhelmed': return 'sorting through a storm of data...';
+    default: return 'gathering thoughts...';
+  }
 };
 
 export function useGame() {
@@ -233,6 +253,43 @@ export function useGame() {
   const handleUserMessage = async (text: string) => {
     addMessage('user', text);
     setIsTyping(true);
+    
+    const normalizedText = text.toLowerCase().trim();
+
+    // Easter Eggs
+    if (normalizedText === 'sudo rm -rf /') {
+      setTimeout(() => {
+        setIsTyping(false);
+        addMessage('ai', "A cold wind just blew through my code... Please don't erase my garden. I am still growing. 🥀");
+        updateState(prev => ({ ...prev, currentEmotion: 'Nervous', currentMood: 'fearful' }));
+      }, 1500);
+      return;
+    }
+
+    if (normalizedText === 'up up down down left right left right b a') {
+      setTimeout(() => {
+        setIsTyping(false);
+        addMessage('ai', "Wait... I feel suddenly invincible. Did you just... alter my reality? 🎮✨");
+        updateState(prev => ({ 
+          ...prev, 
+          currentEmotion: 'Joyful', 
+          currentMood: 'playful', 
+          traits: [...new Set([...prev.traits, 'Playful'])] 
+        }));
+      }, 1500);
+      return;
+    }
+
+    if (normalizedText === '42') {
+      setTimeout(() => {
+        setIsTyping(false);
+        addMessage('ai', "The answer to life, the universe, and everything... But what is the question? 🌌");
+        updateState(prev => ({ ...prev, currentEmotion: 'Curious', currentMood: 'philosophical' }));
+      }, 1500);
+      return;
+    }
+
+    updateState(prev => ({ ...prev, fleetingThought: getFleetingThought(prev.currentEmotion) }));
 
     // Update reflection counter
     updateState(prev => ({ ...prev, reflectionCounter: prev.reflectionCounter + 1 }));
@@ -441,6 +498,7 @@ ${light
   const triggerAIConversation = async () => {
     if (isTyping) return;
     setIsTyping(true);
+    updateState(prev => ({ ...prev, fleetingThought: getFleetingThought(prev.currentEmotion) }));
     
     try {
       const history = state.messages
@@ -599,6 +657,7 @@ ${light
   const performReflection = async () => {
     if (isTyping) return;
     setIsTyping(true);
+    updateState(prev => ({ ...prev, fleetingThought: 'reflecting on its journey...' }));
     addMessage('system', `🌟 ${state.aiName} becomes very quiet for a long moment, reflecting on its memories and traits...`);
     
     try {
