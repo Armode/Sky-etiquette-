@@ -13,6 +13,7 @@ export interface CoreMemory {
 }
 
 export type GamePhase = 
+  | 'login'
   | 'intro' 
   | 'naming' 
   | 'ceremony' 

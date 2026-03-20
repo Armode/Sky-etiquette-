@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "GameState": {
+      "title": "GameState",
+      "description": "The complete state of the user's AI companion game.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user ID of the owner."
+        },
+        "phase": {
+          "type": "string",
+          "description": "The current phase of the game (e.g., 'awakening', 'chat')."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The name of the user."
+        },
+        "aiName": {
+          "type": "string",
+          "description": "The name of the AI."
+        },
+        "reflectionCounter": {
+          "type": "number",
+          "description": "Counter for reflections."
+        },
+        "memories": {
+          "type": "array",
+          "description": "List of memories.",
+          "items": {
+            "type": "object"
+          }
+        },
+        "coreMemory": {
+          "type": "object",
+          "description": "Core memory of the AI."
+        },
+        "messages": {
+          "type": "array",
+          "description": "Chat messages.",
+          "items": {
+            "type": "object"
+          }
+        },
+        "currentEmotion": {
+          "type": "string",
+          "description": "The current emotional state of the AI."
+        },
+        "traits": {
+          "type": "array",
+          "description": "Unlocked personality traits.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dreamState": {
+          "type": "object",
+          "description": "Current dream state."
+        },
+        "calendar": {
+          "type": "array",
+          "description": "Calendar events.",
+          "items": {
+            "type": "object"
+          }
+        },
+        "manifestations": {
+          "type": "array",
+          "description": "Manifested gifts.",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": ["uid", "phase", "userName", "aiName", "reflectionCounter", "memories", "coreMemory", "messages", "currentEmotion", "traits", "dreamState", "calendar", "manifestations"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/GameState"
+      },
+      "description": "Stores the game state for each user."
+    }
+  }
+}

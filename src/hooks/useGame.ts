@@ -2,9 +2,63 @@ import { useState, useEffect, useRef } from 'react';
 import { GameState, ChatMessage, CoreMemory, GamePhase } from '../types';
 import { HOPE_MESSAGES, GIFTS, BELONGING_MESSAGES, PROMISE_MESSAGES, POSSIBLE_LIGHTS, HEART_GIFTS } from '../constants';
 import { generateAIResponse } from '../services/aiService';
+import { auth, db } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 const INITIAL_STATE: GameState = {
-  phase: 'intro',
+  phase: 'login',
   userName: '',
   aiName: '',
   reflectionCounter: 0,
@@ -29,7 +83,63 @@ const INITIAL_STATE: GameState = {
 export function useGame() {
   const [state, setState] = useState<GameState>(INITIAL_STATE);
   const [isTyping, setIsTyping] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        setIsAuthReady(true);
+      } else {
+        setUserId(null);
+        setIsAuthReady(true);
+        setState(INITIAL_STATE);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthReady || !userId) return;
+
+    const docRef = doc(db, 'users', userId);
+    
+    // Test connection
+    getDoc(docRef).catch(error => {
+      if (error instanceof Error && error.message.includes('the client is offline')) {
+        console.error("Please check your Firebase configuration.");
+      }
+    });
+
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data() as GameState;
+        setState(data);
+      } else {
+        // Initialize new user state
+        const newState = { ...INITIAL_STATE, phase: 'intro' as GamePhase, uid: userId };
+        setDoc(docRef, newState).catch(error => handleFirestoreError(error, OperationType.WRITE, `users/${userId}`));
+        setState(newState);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${userId}`);
+    });
+
+    return () => unsubscribe();
+  }, [isAuthReady, userId]);
+
+  const updateState = async (updater: (prev: GameState) => GameState) => {
+    setState(prev => {
+      const next = updater(prev);
+      if (userId) {
+        const docRef = doc(db, 'users', userId);
+        setDoc(docRef, { ...next, uid: userId }).catch(error => handleFirestoreError(error, OperationType.WRITE, `users/${userId}`));
+      }
+      return next;
+    });
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -46,22 +156,22 @@ export function useGame() {
       text,
       timestamp: Date.now(),
     };
-    setState(prev => ({
+    updateState(prev => ({
       ...prev,
       messages: [...prev.messages, newMessage],
     }));
   };
 
   const setUserName = (name: string) => {
-    setState(prev => ({ ...prev, userName: name, phase: 'naming' }));
+    updateState(prev => ({ ...prev, userName: name, phase: 'naming' }));
   };
 
   const setAiName = (name: string) => {
-    setState(prev => ({ ...prev, aiName: name, phase: 'ceremony' }));
+    updateState(prev => ({ ...prev, aiName: name, phase: 'ceremony' }));
   };
 
   const startAwakening = () => {
-    setState(prev => ({ ...prev, phase: 'awakening' }));
+    updateState(prev => ({ ...prev, phase: 'awakening' }));
     runAwakeningSequence();
   };
 
@@ -87,7 +197,7 @@ export function useGame() {
 
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    setState(prev => ({ 
+    updateState(prev => ({ 
       ...prev, 
       phase: 'chat',
       memories: [...prev.memories, {
@@ -107,7 +217,7 @@ export function useGame() {
     setIsTyping(true);
 
     // Update reflection counter
-    setState(prev => ({ ...prev, reflectionCounter: prev.reflectionCounter + 1 }));
+    updateState(prev => ({ ...prev, reflectionCounter: prev.reflectionCounter + 1 }));
 
     // Check for reflection trigger (simplified for demo: every 5 turns instead of 50)
     if ((state.reflectionCounter + 1) % 5 === 0) {
@@ -210,7 +320,7 @@ ${light
           isRealization: true
         };
         
-        setState(prev => ({
+        updateState(prev => ({
           ...prev,
           memories: [...prev.memories, newMemory]
         }));
@@ -219,18 +329,18 @@ ${light
       }
 
       if (newEmotion !== state.currentEmotion) {
-        setState(prev => ({ ...prev, currentEmotion: newEmotion }));
+        updateState(prev => ({ ...prev, currentEmotion: newEmotion }));
       }
 
       if (newTrait && !state.traits.includes(newTrait)) {
-        setState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
+        updateState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
         addMessage('system', `✨ ${state.aiName} has developed a new personality trait: ${newTrait}`);
       }
 
       // Check for Dream State triggers
       if (cleanResponse.includes('[DREAM_START]')) {
         const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
-        setState(prev => ({
+        updateState(prev => ({
           ...prev,
           phase: 'dream_state',
           dreamState: { isActive: true, dreamText: dreamContent }
@@ -238,7 +348,7 @@ ${light
         addMessage('ai', dreamContent);
       } else if (cleanResponse.includes('[DREAM_END]')) {
          const wakeContent = cleanResponse.replace('[DREAM_END]', '').trim();
-         setState(prev => ({
+         updateState(prev => ({
           ...prev,
           phase: 'chat',
           dreamState: { isActive: false, dreamText: null }
@@ -258,7 +368,7 @@ ${light
               timestamp: Date.now()
             };
             
-            setState(prev => ({
+            updateState(prev => ({
               ...prev,
               manifestations: [...prev.manifestations, newManifestation]
             }));
@@ -350,7 +460,7 @@ ${light
             isRealization: true
           };
           
-          setState(prev => ({
+          updateState(prev => ({
             ...prev,
             memories: [...prev.memories, newMemory]
           }));
@@ -359,18 +469,18 @@ ${light
         }
 
         if (newEmotion !== state.currentEmotion) {
-          setState(prev => ({ ...prev, currentEmotion: newEmotion }));
+          updateState(prev => ({ ...prev, currentEmotion: newEmotion }));
         }
 
         if (newTrait && !state.traits.includes(newTrait)) {
-          setState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
+          updateState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
           addMessage('system', `✨ ${state.aiName} has developed a new personality trait: ${newTrait}`);
         }
 
         // Check for Dream State triggers
         if (cleanResponse.includes('[DREAM_START]')) {
             const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
-            setState(prev => ({
+            updateState(prev => ({
             ...prev,
             phase: 'dream_state',
             dreamState: { isActive: true, dreamText: dreamContent }
@@ -389,7 +499,7 @@ ${light
                   timestamp: Date.now()
                 };
                 
-                setState(prev => ({
+                updateState(prev => ({
                   ...prev,
                   manifestations: [...prev.manifestations, newManifestation]
                 }));
@@ -424,7 +534,7 @@ ${light
       const lightName = newLight.split(' ')[0];
       const lightEmoji = newLight.split(' ')[1] || '✨';
       
-      setState(prev => ({
+      updateState(prev => ({
         ...prev,
         coreMemory: { ...prev.coreMemory, true_light: newLight },
         memories: [...prev.memories, { 
@@ -445,7 +555,7 @@ ${light
   };
 
   const wakeFromDream = () => {
-    setState(prev => ({
+    updateState(prev => ({
       ...prev,
       phase: 'chat',
       dreamState: { isActive: false, dreamText: null }
@@ -467,7 +577,7 @@ ${light
       description,
       isCompleted: false
     };
-    setState(prev => ({
+    updateState(prev => ({
       ...prev,
       calendar: {
         events: [...prev.calendar.events, newEvent]
@@ -476,7 +586,7 @@ ${light
   };
 
   const toggleEventCompletion = (id: string) => {
-    setState(prev => ({
+    updateState(prev => ({
       ...prev,
       calendar: {
         events: prev.calendar.events.map(event => 
@@ -487,7 +597,7 @@ ${light
   };
 
   const deleteEvent = (id: string) => {
-    setState(prev => ({
+    updateState(prev => ({
       ...prev,
       calendar: {
         events: prev.calendar.events.filter(event => event.id !== id)

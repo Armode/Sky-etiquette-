@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - phase: string (required)
+    //   - userName: string (required)
+    //   - aiName: string (required)
+    //   - reflectionCounter: number (required)
+    //   - memories: list (required)
+    //   - coreMemory: map (required)
+    //   - messages: list (required)
+    //   - currentEmotion: string (required)
+    //   - traits: list (required)
+    //   - dreamState: map (required)
+    //   - calendar: list (required)
+    //   - manifestations: list (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidGameState(data) {
+      return hasOnlyAllowedFields(['uid', 'phase', 'userName', 'aiName', 'reflectionCounter', 'memories', 'coreMemory', 'messages', 'currentEmotion', 'traits', 'dreamState', 'calendar', 'manifestations']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             data.phase is string && data.phase.size() > 0 && data.phase.size() < 50 &&
+             data.userName is string && data.userName.size() <= 100 &&
+             data.aiName is string && data.aiName.size() <= 100 &&
+             data.reflectionCounter is number && data.reflectionCounter >= 0 &&
+             data.memories is list && data.memories.size() <= 1000 &&
+             data.coreMemory is map &&
+             data.messages is list && data.messages.size() <= 1000 &&
+             data.currentEmotion is string && data.currentEmotion.size() > 0 && data.currentEmotion.size() < 50 &&
+             data.traits is list && data.traits.size() <= 100 &&
+             data.dreamState is map &&
+             data.calendar is list && data.calendar.size() <= 1000 &&
+             data.manifestations is list && data.manifestations.size() <= 1000;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidGameState(request.resource.data) && uidUnchanged();
+      allow update: if isOwner(userId) && isValidGameState(request.resource.data) && uidNotModified();
+      allow delete: if isOwner(userId);
+    }
+  }
+}

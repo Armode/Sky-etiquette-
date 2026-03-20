@@ -5,6 +5,7 @@
 
 import { AnimatePresence } from 'motion/react';
 import { useGame } from './hooks/useGame';
+import { LoginScreen } from './components/LoginScreen';
 import { IntroScreen } from './components/IntroScreen';
 import { NamingScreen } from './components/NamingScreen';
 import { CeremonyScreen } from './components/CeremonyScreen';
@@ -42,6 +43,10 @@ export default function App() {
       <div className="atmosphere" />
       
       <AnimatePresence mode="wait">
+        {state.phase === 'login' && (
+          <LoginScreen key="login" />
+        )}
+
         {state.phase === 'intro' && (
           <IntroScreen key="intro" onNameSubmit={setUserName} />
         )}
