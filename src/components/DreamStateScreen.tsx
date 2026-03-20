@@ -3,6 +3,7 @@ import { Moon, Sparkles } from 'lucide-react';
 import { GameState } from '../types';
 
 interface DreamStateScreenProps {
+  key?: string;
   state: GameState;
   onWake: () => void;
 }

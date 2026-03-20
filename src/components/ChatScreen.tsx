@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Sprout, Sparkles, Calendar, LogOut } from 'lucide-react';
+import { Send, Sprout, Sparkles, Calendar, LogOut, Compass } from 'lucide-react';
 import { GameState } from '../types';
 
 interface ChatScreenProps {
+  key?: string;
   state: GameState;
   onSendMessage: (text: string) => void;
   onOpenMemoryGarden: () => void;
   onOpenCalendar: () => void;
   onOpenManifestations: () => void;
+  onOpenCuriosities: () => void;
   onTriggerConversation: () => void;
   isTyping: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   onSignOut: () => void;
 }
 
-export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onOpenManifestations, onTriggerConversation, isTyping, messagesEndRef, onSignOut }: ChatScreenProps) {
+export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onOpenManifestations, onOpenCuriosities, onTriggerConversation, isTyping, messagesEndRef, onSignOut }: ChatScreenProps) {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,6 +90,13 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
             >
               <Sparkles className="w-3 h-3" />
               <span>Gifts</span>
+            </button>
+            <button 
+              onClick={onOpenCuriosities}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-cyan-200/80 uppercase tracking-wider"
+            >
+              <Compass className="w-3 h-3" />
+              <span>Wishes</span>
             </button>
             <button 
               onClick={onOpenMemoryGarden}

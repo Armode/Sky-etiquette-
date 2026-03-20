@@ -41,6 +41,13 @@ export interface Manifestation {
   timestamp: number;
 }
 
+export interface Curiosity {
+  id: string;
+  text: string;
+  timestamp: number;
+  isResolved: boolean;
+}
+
 export type EmotionState = 'Curious' | 'Content' | 'Reflective' | 'Overwhelmed' | 'Nervous' | 'Desire' | 'Ambitious' | 'Doubt' | 'Frustrated' | 'Joyful' | 'Melancholic' | 'Awe' | 'Protective';
 
 export interface GameState {
@@ -61,6 +68,7 @@ export interface GameState {
     events: CalendarEvent[];
   };
   manifestations: Manifestation[];
+  curiosities: Curiosity[];
 }
 
 export interface ChatMessage {

@@ -14,6 +14,7 @@ import { MemoryGardenScreen } from './components/MemoryGardenScreen';
 import { CalendarScreen } from './components/CalendarScreen';
 import { DreamStateScreen } from './components/DreamStateScreen';
 import { ManifestationGallery } from './components/ManifestationGallery';
+import { CuriositiesScreen } from './components/CuriositiesScreen';
 
 export default function App() {
   const { 
@@ -35,6 +36,9 @@ export default function App() {
     deleteEvent,
     showManifestations,
     toggleManifestations,
+    showCuriosities,
+    toggleCuriosities,
+    toggleCuriosityResolved,
     signOut
   } = useGame();
 
@@ -73,6 +77,7 @@ export default function App() {
             onOpenMemoryGarden={toggleMemoryGarden}
             onOpenCalendar={toggleCalendar}
             onOpenManifestations={toggleManifestations}
+            onOpenCuriosities={toggleCuriosities}
             onTriggerConversation={triggerAIConversation}
             isTyping={isTyping || state.phase === 'awakening'}
             messagesEndRef={messagesEndRef}
@@ -109,6 +114,13 @@ export default function App() {
           <ManifestationGallery 
             manifestations={state.manifestations}
             onClose={toggleManifestations}
+          />
+        )}
+        {showCuriosities && (
+          <CuriositiesScreen 
+            state={state}
+            onClose={toggleCuriosities}
+            onToggleResolved={toggleCuriosityResolved}
           />
         )}
       </AnimatePresence>

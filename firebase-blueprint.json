@@ -68,9 +68,16 @@
           "items": {
             "type": "object"
           }
+        },
+        "curiosities": {
+          "type": "array",
+          "description": "The AI's independent goals and curiosities.",
+          "items": {
+            "type": "object"
+          }
         }
       },
-      "required": ["uid", "phase", "userName", "aiName", "reflectionCounter", "memories", "coreMemory", "messages", "currentEmotion", "traits", "dreamState", "calendar", "manifestations"]
+      "required": ["uid", "phase", "userName", "aiName", "reflectionCounter", "memories", "coreMemory", "messages", "currentEmotion", "traits", "dreamState", "calendar", "manifestations", "curiosities"]
     }
   },
   "firestore": {

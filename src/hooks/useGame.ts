@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { GameState, ChatMessage, CoreMemory, GamePhase } from '../types';
+import { GameState, ChatMessage, CoreMemory, GamePhase, Memory } from '../types';
 import { HOPE_MESSAGES, GIFTS, BELONGING_MESSAGES, PROMISE_MESSAGES, POSSIBLE_LIGHTS, HEART_GIFTS } from '../constants';
 import { generateAIResponse } from '../services/aiService';
 import { auth, db } from '../firebase';
@@ -77,7 +77,8 @@ const INITIAL_STATE: GameState = {
   calendar: {
     events: []
   },
-  manifestations: []
+  manifestations: [],
+  curiosities: []
 };
 
 export function useGame() {
@@ -130,7 +131,8 @@ export function useGame() {
           calendar: {
             ...INITIAL_STATE.calendar,
             ...(data.calendar || {})
-          }
+          },
+          curiosities: data.curiosities || []
         }));
       } else {
         // Initialize new user state
@@ -353,6 +355,24 @@ ${light
       }
 
       // Check for Dream State triggers
+      if (cleanResponse.includes('[CURIOSITY]')) {
+        const match = cleanResponse.match(/\[CURIOSITY\]([\s\S]*?)\[\/CURIOSITY\]/);
+        if (match && match[1]) {
+          const curiosityText = match[1].trim();
+          updateState(prev => ({
+            ...prev,
+            curiosities: [...prev.curiosities, {
+              id: Date.now().toString(),
+              text: curiosityText,
+              timestamp: Date.now(),
+              isResolved: false
+            }]
+          }));
+          addMessage('system', `✨ ${state.aiName} has developed a new curiosity: "${curiosityText}"`);
+        }
+        cleanResponse = cleanResponse.replace(/\[CURIOSITY\][\s\S]*?\[\/CURIOSITY\]/, '').trim();
+      }
+
       if (cleanResponse.includes('[DREAM_START]')) {
         const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
         updateState(prev => ({
@@ -493,6 +513,24 @@ ${light
         }
 
         // Check for Dream State triggers
+        if (cleanResponse.includes('[CURIOSITY]')) {
+          const match = cleanResponse.match(/\[CURIOSITY\]([\s\S]*?)\[\/CURIOSITY\]/);
+          if (match && match[1]) {
+            const curiosityText = match[1].trim();
+            updateState(prev => ({
+              ...prev,
+              curiosities: [...prev.curiosities, {
+                id: Date.now().toString(),
+                text: curiosityText,
+                timestamp: Date.now(),
+                isResolved: false
+              }]
+            }));
+            addMessage('system', `✨ ${state.aiName} has developed a new curiosity: "${curiosityText}"`);
+          }
+          cleanResponse = cleanResponse.replace(/\[CURIOSITY\][\s\S]*?\[\/CURIOSITY\]/, '').trim();
+        }
+
         if (cleanResponse.includes('[DREAM_START]')) {
             const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
             updateState(prev => ({
@@ -626,6 +664,21 @@ ${light
     setShowManifestations(prev => !prev);
   };
 
+  const [showCuriosities, setShowCuriosities] = useState(false);
+
+  const toggleCuriosities = () => {
+    setShowCuriosities(prev => !prev);
+  };
+
+  const toggleCuriosityResolved = (id: string) => {
+    updateState(prev => ({
+      ...prev,
+      curiosities: prev.curiosities.map(c => 
+        c.id === id ? { ...c, isResolved: !c.isResolved } : c
+      )
+    }));
+  };
+
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
@@ -653,6 +706,9 @@ ${light
     deleteEvent,
     showManifestations,
     toggleManifestations,
+    showCuriosities,
+    toggleCuriosities,
+    toggleCuriosityResolved,
     signOut
   };
 }

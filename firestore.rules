@@ -51,7 +51,7 @@ service cloud.firestore {
     }
 
     function isValidGameState(data) {
-      return hasOnlyAllowedFields(['uid', 'phase', 'userName', 'aiName', 'reflectionCounter', 'memories', 'coreMemory', 'messages', 'currentEmotion', 'traits', 'dreamState', 'calendar', 'manifestations']) &&
+      return hasOnlyAllowedFields(['uid', 'phase', 'userName', 'aiName', 'reflectionCounter', 'memories', 'coreMemory', 'messages', 'currentEmotion', 'traits', 'dreamState', 'calendar', 'manifestations', 'curiosities']) &&
              data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
              data.phase is string && data.phase.size() > 0 && data.phase.size() < 50 &&
              data.userName is string && data.userName.size() <= 100 &&
@@ -64,7 +64,8 @@ service cloud.firestore {
              data.traits is list && data.traits.size() <= 100 &&
              data.dreamState is map &&
              data.calendar is map &&
-             data.manifestations is list && data.manifestations.size() <= 1000;
+             data.manifestations is list && data.manifestations.size() <= 1000 &&
+             data.curiosities is list && data.curiosities.size() <= 1000;
     }
 
     match /users/{userId} {

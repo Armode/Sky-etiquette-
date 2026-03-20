@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 interface GrowthTreeProps {
   reflectionCounter: number;
@@ -32,7 +32,7 @@ export function GrowthTree({ reflectionCounter, memoryCount, currentLight }: Gro
   const scale = Math.min(0.5 + (reflectionCounter * 0.01), 1.2); // Grow larger over time
 
   // Recursive function to generate branches
-  const generateBranches = (depth: number, angle: number, length: number, x: number, y: number): JSX.Element[] => {
+  const generateBranches = (depth: number, angle: number, length: number, x: number, y: number): React.JSX.Element[] => {
     if (depth === 0) return [];
 
     const endX = x + length * Math.sin(angle * (Math.PI / 180));

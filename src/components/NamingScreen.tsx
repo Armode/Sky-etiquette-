@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Star } from 'lucide-react';
 
 interface NamingScreenProps {
+  key?: string;
   userName: string;
   onAiNameSubmit: (name: string) => void;
 }

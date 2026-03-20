@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 
 interface CeremonyScreenProps {
+  key?: string;
   userName: string;
   aiName: string;
   onComplete: () => void;

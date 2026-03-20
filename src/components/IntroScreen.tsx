@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface IntroScreenProps {
+  key?: string;
   onNameSubmit: (name: string) => void;
 }
 
