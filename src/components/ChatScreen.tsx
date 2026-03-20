@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Sprout, Sparkles, Calendar } from 'lucide-react';
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
 import { GameState } from '../types';
 
 interface ChatScreenProps {
@@ -99,10 +97,7 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
                   </div>
                 )}
                 <div className="whitespace-pre-wrap leading-relaxed">
-                  {msg.sender === 'ai'
-                    ? <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(msg.text, { async: false, breaks: true, gfm: true }) as string) }} />
-                    : msg.text
-                  }
+                  {msg.text}
                 </div>
               </div>
             </motion.div>
