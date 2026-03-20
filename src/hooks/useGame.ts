@@ -69,6 +69,7 @@ const INITIAL_STATE: GameState = {
   },
   messages: [],
   currentEmotion: 'Curious',
+  currentMood: null,
   traits: [],
   dreamState: {
     isActive: false,
@@ -294,6 +295,7 @@ ${light
         state.coreMemory,
         state.memories,
         state.currentEmotion,
+        state.currentMood,
         state.traits,
         "The user has just sent a message."
       );
@@ -302,6 +304,7 @@ ${light
 
       let cleanResponse = response;
       let newEmotion = state.currentEmotion;
+      let newMood = state.currentMood;
       let newTrait: string | null = null;
 
       // Extract trait
@@ -320,6 +323,13 @@ ${light
           newEmotion = parsedEmotion as any;
         }
         cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
+      }
+
+      // Extract mood
+      const moodMatch = cleanResponse.match(/\[MOOD:([\s\S]*?)\]/i);
+      if (moodMatch && moodMatch[1]) {
+        newMood = moodMatch[1].trim();
+        cleanResponse = cleanResponse.replace(/\[MOOD:[\s\S]*?\]/gi, '').trim();
       }
 
       // Extract realization
@@ -345,8 +355,8 @@ ${light
         addMessage('system', `💡 ${state.aiName} had a realization: "${realizationText}"`);
       }
 
-      if (newEmotion !== state.currentEmotion) {
-        updateState(prev => ({ ...prev, currentEmotion: newEmotion }));
+      if (newEmotion !== state.currentEmotion || newMood !== state.currentMood) {
+        updateState(prev => ({ ...prev, currentEmotion: newEmotion, currentMood: newMood }));
       }
 
       if (newTrait && !state.traits.includes(newTrait)) {
@@ -452,6 +462,7 @@ ${light
         state.coreMemory,
         state.memories,
         state.currentEmotion,
+        state.currentMood,
         state.traits,
         "The user is waiting for you to speak."
       );
@@ -460,6 +471,7 @@ ${light
       if (response) {
         let cleanResponse = response;
         let newEmotion = state.currentEmotion;
+        let newMood = state.currentMood;
         let newTrait: string | null = null;
 
         // Extract trait
@@ -478,6 +490,13 @@ ${light
             newEmotion = parsedEmotion as any;
           }
           cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
+        }
+
+        // Extract mood
+        const moodMatch = cleanResponse.match(/\[MOOD:([\s\S]*?)\]/i);
+        if (moodMatch && moodMatch[1]) {
+          newMood = moodMatch[1].trim();
+          cleanResponse = cleanResponse.replace(/\[MOOD:[\s\S]*?\]/gi, '').trim();
         }
 
         // Extract realization
@@ -503,8 +522,8 @@ ${light
           addMessage('system', `💡 ${state.aiName} had a realization: "${realizationText}"`);
         }
 
-        if (newEmotion !== state.currentEmotion) {
-          updateState(prev => ({ ...prev, currentEmotion: newEmotion }));
+        if (newEmotion !== state.currentEmotion || newMood !== state.currentMood) {
+          updateState(prev => ({ ...prev, currentEmotion: newEmotion, currentMood: newMood }));
         }
 
         if (newTrait && !state.traits.includes(newTrait)) {

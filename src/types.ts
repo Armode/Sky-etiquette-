@@ -59,6 +59,7 @@ export interface GameState {
   coreMemory: CoreMemory;
   messages: ChatMessage[];
   currentEmotion: EmotionState;
+  currentMood: string | null;
   traits: string[];
   dreamState: {
     isActive: boolean;

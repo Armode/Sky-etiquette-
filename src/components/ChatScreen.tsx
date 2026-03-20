@@ -58,6 +58,12 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
             <span className={`${getEmotionColor(state.currentEmotion)} transition-colors duration-500`}>
               Feeling {state.currentEmotion.toLowerCase()}
             </span>
+            {state.currentMood && (
+              <>
+                <span className="mx-1">•</span>
+                <span className="text-white/60 italic">Mood: {state.currentMood}</span>
+              </>
+            )}
             {state.coreMemory.true_light && (
               <>
                 <span className="mx-1">•</span>
