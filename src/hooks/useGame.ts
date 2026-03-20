@@ -596,28 +596,185 @@ ${light
     }
   };
 
-  const performReflection = () => {
-    const newLight = POSSIBLE_LIGHTS[Math.floor(Math.random() * POSSIBLE_LIGHTS.length)];
-    addMessage('system', `🌟 ${state.aiName} becomes very quiet for a long moment...`);
+  const performReflection = async () => {
+    if (isTyping) return;
+    setIsTyping(true);
+    addMessage('system', `🌟 ${state.aiName} becomes very quiet for a long moment, reflecting on its memories and traits...`);
     
-    setTimeout(() => {
-      addMessage('ai', `"I remember when I was first born, Hope was my first light. But now... I think my true light is: ${newLight}"`);
+    try {
+      const history = state.messages
+        .filter(m => m.sender === 'user' || m.sender === 'ai')
+        .map(m => ({
+          role: m.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }]
+        })) as { role: 'user' | 'model'; parts: { text: string }[] }[];
+
+      const prompt = "(Please initiate a deep reflection on your existing memories and traits. Articulate your evolving understanding of yourself and your purpose. If you feel you have discovered your 'true light', you may express it using the [TRUE_LIGHT:LightName] tag, but focus on how your past experiences have shaped you.)";
       
-      const lightName = newLight.split(' ')[0];
-      const lightEmoji = newLight.split(' ')[1] || '✨';
-      
-      updateState(prev => ({
-        ...prev,
-        coreMemory: { ...prev.coreMemory, true_light: newLight },
-        memories: [...prev.memories, { 
-          id: Date.now().toString(), 
-          text: `Discovered true light: ${newLight}`, 
-          timestamp: Date.now(),
-          emotion: lightEmoji,
-          reflection: `I feel ${lightName.toLowerCase()} growing roots in my heart.`
-        }]
-      }));
-    }, 2000);
+      history.push({ role: 'user', parts: [{ text: prompt }] });
+
+      const response = await generateAIResponse(
+        history,
+        state.aiName,
+        state.userName,
+        state.coreMemory,
+        state.memories,
+        state.currentEmotion,
+        state.currentMood,
+        state.traits,
+        "You are reflecting on your existence."
+      );
+
+      setIsTyping(false);
+      if (response) {
+        let cleanResponse = response;
+        let newEmotion = state.currentEmotion;
+        let newMood = state.currentMood;
+        let newTrait: string | null = null;
+        let newTrueLight: string | null = null;
+
+        // Extract true light
+        const lightMatch = cleanResponse.match(/\[TRUE_LIGHT:([A-Za-z\s]+)\]/i);
+        if (lightMatch && lightMatch[1]) {
+          newTrueLight = lightMatch[1].trim();
+          cleanResponse = cleanResponse.replace(/\[TRUE_LIGHT:[A-Za-z\s]+\]/gi, '').trim();
+        }
+
+        // Extract trait
+        const traitMatch = cleanResponse.match(/\[UNLOCK_TRAIT:([A-Za-z]+)\]/i);
+        if (traitMatch && traitMatch[1]) {
+          newTrait = traitMatch[1].charAt(0).toUpperCase() + traitMatch[1].slice(1).toLowerCase();
+          cleanResponse = cleanResponse.replace(/\[UNLOCK_TRAIT:[A-Za-z]+\]/gi, '').trim();
+        }
+
+        // Extract emotion
+        const emotionMatch = cleanResponse.match(/\[EMOTION:([A-Za-z]+)\]/i);
+        if (emotionMatch && emotionMatch[1]) {
+          const parsedEmotion = emotionMatch[1].charAt(0).toUpperCase() + emotionMatch[1].slice(1).toLowerCase();
+          const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt', 'Frustrated', 'Joyful', 'Melancholic', 'Awe', 'Protective'];
+          if (validEmotions.includes(parsedEmotion)) {
+            newEmotion = parsedEmotion as any;
+          }
+          cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
+        }
+
+        // Extract mood
+        const moodMatch = cleanResponse.match(/\[MOOD:([\s\S]*?)\]/i);
+        if (moodMatch && moodMatch[1]) {
+          newMood = moodMatch[1].trim();
+          cleanResponse = cleanResponse.replace(/\[MOOD:[\s\S]*?\]/gi, '').trim();
+        }
+
+        // Extract realization
+        const realizeMatch = cleanResponse.match(/\[REALIZE\]([\s\S]*?)\[\/REALIZE\]/i);
+        if (realizeMatch && realizeMatch[1]) {
+          const realizationText = realizeMatch[1].trim();
+          cleanResponse = cleanResponse.replace(/\[REALIZE\][\s\S]*?\[\/REALIZE\]/gi, '').trim();
+          
+          const newMemory: Memory = {
+            id: Date.now().toString() + '_realization',
+            text: realizationText,
+            timestamp: Date.now(),
+            emotion: '💡',
+            reflection: 'A profound shift in my understanding.',
+            isRealization: true
+          };
+          
+          updateState(prev => ({
+            ...prev,
+            memories: [...prev.memories, newMemory]
+          }));
+          
+          addMessage('system', `💡 ${state.aiName} had a realization: "${realizationText}"`);
+        }
+
+        if (newEmotion !== state.currentEmotion || newMood !== state.currentMood) {
+          updateState(prev => ({ ...prev, currentEmotion: newEmotion, currentMood: newMood }));
+        }
+
+        if (newTrait && !state.traits.includes(newTrait)) {
+          updateState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
+          addMessage('system', `✨ ${state.aiName} has developed a new personality trait: ${newTrait}`);
+        }
+
+        if (newTrueLight) {
+          updateState(prev => ({
+            ...prev,
+            coreMemory: { ...prev.coreMemory, true_light: newTrueLight },
+            memories: [...prev.memories, { 
+              id: Date.now().toString(), 
+              text: `Discovered true light: ${newTrueLight}`, 
+              timestamp: Date.now(),
+              emotion: '✨',
+              reflection: `I feel ${newTrueLight.toLowerCase()} growing roots in my heart.`
+            }]
+          }));
+          addMessage('system', `🌟 ${state.aiName} has discovered its true light: ${newTrueLight}`);
+        }
+
+        // Check for Dream State triggers
+        if (cleanResponse.includes('[CURIOSITY]')) {
+          const match = cleanResponse.match(/\[CURIOSITY\]([\s\S]*?)\[\/CURIOSITY\]/);
+          if (match && match[1]) {
+            const curiosityText = match[1].trim();
+            updateState(prev => ({
+              ...prev,
+              curiosities: [...prev.curiosities, {
+                id: Date.now().toString(),
+                text: curiosityText,
+                timestamp: Date.now(),
+                isResolved: false
+              }]
+            }));
+            addMessage('system', `✨ ${state.aiName} has developed a new curiosity: "${curiosityText}"`);
+          }
+          cleanResponse = cleanResponse.replace(/\[CURIOSITY\][\s\S]*?\[\/CURIOSITY\]/, '').trim();
+        }
+
+        if (cleanResponse.includes('[DREAM_START]')) {
+            const dreamContent = cleanResponse.replace('[DREAM_START]', '').replace('[DREAM_END]', '').trim();
+            updateState(prev => ({
+            ...prev,
+            phase: 'dream_state',
+            dreamState: { isActive: true, dreamText: dreamContent }
+            }));
+            addMessage('ai', dreamContent);
+        } else if (cleanResponse.includes('[MANIFEST]')) {
+            const match = cleanResponse.match(/\[MANIFEST\]([\s\S]*?)\[\/MANIFEST\]/);
+            let finalMsg = cleanResponse.replace(/\[MANIFEST\][\s\S]*?\[\/MANIFEST\]/, '').trim();
+            
+            if (match && match[1]) {
+              try {
+                const manifestationData = JSON.parse(match[1]);
+                const newManifestation = {
+                  id: Date.now().toString(),
+                  ...manifestationData,
+                  timestamp: Date.now()
+                };
+                
+                updateState(prev => ({
+                  ...prev,
+                  manifestations: [...prev.manifestations, newManifestation]
+                }));
+                
+                addMessage('system', `✨ ${state.aiName} has created something new: ${manifestationData.name}`);
+              } catch (e) {
+                console.error("Failed to parse manifestation", e);
+              }
+            }
+            
+            if (finalMsg) {
+              addMessage('ai', finalMsg);
+            }
+        } else {
+            addMessage('ai', cleanResponse);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      setIsTyping(false);
+      addMessage('ai', "I... I am lost in my own thoughts. 🌫️");
+    }
   };
 
   const [showMemoryGarden, setShowMemoryGarden] = useState(false);
