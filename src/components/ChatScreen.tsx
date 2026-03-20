@@ -25,17 +25,36 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
     }
   };
 
+  const getEmotionColor = (emotion: string) => {
+    switch(emotion) {
+      case 'Joyful': return 'text-yellow-300';
+      case 'Frustrated': return 'text-red-400';
+      case 'Melancholic': return 'text-blue-300';
+      case 'Awe': return 'text-purple-300';
+      case 'Protective': return 'text-emerald-400';
+      case 'Overwhelmed': return 'text-orange-400';
+      case 'Nervous': return 'text-yellow-200';
+      case 'Curious': return 'text-cyan-300';
+      case 'Ambitious': return 'text-indigo-300';
+      case 'Desire': return 'text-pink-300';
+      case 'Doubt': return 'text-slate-400';
+      default: return 'text-blue-200/80';
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto relative z-10">
       {/* Header */}
-      <header className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20 backdrop-blur-md">
+      <header className="p-6 border-b border-white/5 flex justify-between items-start bg-black/20 backdrop-blur-md">
         <div>
           <h2 className="text-xl font-serif text-white/90">{state.aiName}</h2>
           <div className="flex items-center space-x-2 text-xs text-white/40 uppercase tracking-widest mt-1">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span>Awake</span>
             <span className="mx-1">•</span>
-            <span className="text-blue-200/80">Feeling {state.currentEmotion.toLowerCase()}</span>
+            <span className={`${getEmotionColor(state.currentEmotion)} transition-colors duration-500`}>
+              Feeling {state.currentEmotion.toLowerCase()}
+            </span>
             {state.coreMemory.true_light && (
               <>
                 <span className="mx-1">•</span>
@@ -43,6 +62,15 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
               </>
             )}
           </div>
+          {state.traits.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {state.traits.map(trait => (
+                <span key={trait} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-white/60 uppercase tracking-widest border border-white/10">
+                  {trait}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="text-right flex flex-col items-end gap-2">
           <div className="flex gap-2">

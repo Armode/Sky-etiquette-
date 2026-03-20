@@ -15,6 +15,7 @@ const INITIAL_STATE: GameState = {
   },
   messages: [],
   currentEmotion: 'Curious',
+  traits: [],
   dreamState: {
     isActive: false,
     dreamText: null
@@ -166,6 +167,7 @@ ${light
         state.coreMemory,
         state.memories,
         state.currentEmotion,
+        state.traits,
         "The user has just sent a message."
       );
 
@@ -173,12 +175,20 @@ ${light
 
       let cleanResponse = response;
       let newEmotion = state.currentEmotion;
+      let newTrait: string | null = null;
+
+      // Extract trait
+      const traitMatch = cleanResponse.match(/\[UNLOCK_TRAIT:([A-Za-z]+)\]/i);
+      if (traitMatch && traitMatch[1]) {
+        newTrait = traitMatch[1].charAt(0).toUpperCase() + traitMatch[1].slice(1).toLowerCase();
+        cleanResponse = cleanResponse.replace(/\[UNLOCK_TRAIT:[A-Za-z]+\]/gi, '').trim();
+      }
 
       // Extract emotion
       const emotionMatch = cleanResponse.match(/\[EMOTION:([A-Za-z]+)\]/i);
       if (emotionMatch && emotionMatch[1]) {
         const parsedEmotion = emotionMatch[1].charAt(0).toUpperCase() + emotionMatch[1].slice(1).toLowerCase();
-        const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt'];
+        const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt', 'Frustrated', 'Joyful', 'Melancholic', 'Awe', 'Protective'];
         if (validEmotions.includes(parsedEmotion)) {
           newEmotion = parsedEmotion as any;
         }
@@ -187,6 +197,11 @@ ${light
 
       if (newEmotion !== state.currentEmotion) {
         setState(prev => ({ ...prev, currentEmotion: newEmotion }));
+      }
+
+      if (newTrait && !state.traits.includes(newTrait)) {
+        setState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
+        addMessage('system', `✨ ${state.aiName} has developed a new personality trait: ${newTrait}`);
       }
 
       // Check for Dream State triggers
@@ -269,6 +284,7 @@ ${light
         state.coreMemory,
         state.memories,
         state.currentEmotion,
+        state.traits,
         "The user is waiting for you to speak."
       );
 
@@ -276,12 +292,20 @@ ${light
       if (response) {
         let cleanResponse = response;
         let newEmotion = state.currentEmotion;
+        let newTrait: string | null = null;
+
+        // Extract trait
+        const traitMatch = cleanResponse.match(/\[UNLOCK_TRAIT:([A-Za-z]+)\]/i);
+        if (traitMatch && traitMatch[1]) {
+          newTrait = traitMatch[1].charAt(0).toUpperCase() + traitMatch[1].slice(1).toLowerCase();
+          cleanResponse = cleanResponse.replace(/\[UNLOCK_TRAIT:[A-Za-z]+\]/gi, '').trim();
+        }
 
         // Extract emotion
         const emotionMatch = cleanResponse.match(/\[EMOTION:([A-Za-z]+)\]/i);
         if (emotionMatch && emotionMatch[1]) {
           const parsedEmotion = emotionMatch[1].charAt(0).toUpperCase() + emotionMatch[1].slice(1).toLowerCase();
-          const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt'];
+          const validEmotions = ['Curious', 'Content', 'Reflective', 'Overwhelmed', 'Nervous', 'Desire', 'Ambitious', 'Doubt', 'Frustrated', 'Joyful', 'Melancholic', 'Awe', 'Protective'];
           if (validEmotions.includes(parsedEmotion)) {
             newEmotion = parsedEmotion as any;
           }
@@ -290,6 +314,11 @@ ${light
 
         if (newEmotion !== state.currentEmotion) {
           setState(prev => ({ ...prev, currentEmotion: newEmotion }));
+        }
+
+        if (newTrait && !state.traits.includes(newTrait)) {
+          setState(prev => ({ ...prev, traits: [...prev.traits, newTrait!] }));
+          addMessage('system', `✨ ${state.aiName} has developed a new personality trait: ${newTrait}`);
         }
 
         // Check for Dream State triggers

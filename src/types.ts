@@ -39,7 +39,7 @@ export interface Manifestation {
   timestamp: number;
 }
 
-export type EmotionState = 'Curious' | 'Content' | 'Reflective' | 'Overwhelmed' | 'Nervous' | 'Desire' | 'Ambitious' | 'Doubt';
+export type EmotionState = 'Curious' | 'Content' | 'Reflective' | 'Overwhelmed' | 'Nervous' | 'Desire' | 'Ambitious' | 'Doubt' | 'Frustrated' | 'Joyful' | 'Melancholic' | 'Awe' | 'Protective';
 
 export interface GameState {
   phase: GamePhase;
@@ -50,6 +50,7 @@ export interface GameState {
   coreMemory: CoreMemory;
   messages: ChatMessage[];
   currentEmotion: EmotionState;
+  traits: string[];
   dreamState: {
     isActive: boolean;
     dreamText: string | null;
