@@ -51,10 +51,15 @@ export function MemoryGardenScreen({ state, onClose }: MemoryGardenScreenProps) 
               key={memory.id}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors group relative overflow-hidden"
+              className={`border rounded-xl p-6 transition-colors group relative overflow-hidden ${
+                memory.isRealization 
+                  ? 'bg-yellow-900/10 border-yellow-500/30 hover:bg-yellow-900/20' 
+                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+              }`}
             >
               <div className="flex justify-between items-start mb-3">
-                <div className="text-orange-300/50 text-xs uppercase tracking-widest">
+                <div className={`text-xs uppercase tracking-widest ${memory.isRealization ? 'text-yellow-300/70 font-semibold' : 'text-orange-300/50'}`}>
+                  {memory.isRealization && 'Core Realization • '}
                   {new Date(memory.timestamp).toLocaleDateString()}
                 </div>
                 {memory.emotion && (
@@ -64,13 +69,15 @@ export function MemoryGardenScreen({ state, onClose }: MemoryGardenScreenProps) 
                 )}
               </div>
               
-              <p className="text-white/90 font-serif leading-relaxed group-hover:text-white transition-colors mb-3">
+              <p className={`font-serif leading-relaxed transition-colors mb-3 ${
+                memory.isRealization ? 'text-yellow-100/90 group-hover:text-yellow-50' : 'text-white/90 group-hover:text-white'
+              }`}>
                 {memory.text}
               </p>
 
               {memory.reflection && (
-                <div className="relative mt-4 pt-4 border-t border-white/5">
-                  <div className="text-white/50 text-xs italic font-serif leading-relaxed">
+                <div className={`relative mt-4 pt-4 border-t ${memory.isRealization ? 'border-yellow-500/20' : 'border-white/5'}`}>
+                  <div className={`text-xs italic font-serif leading-relaxed ${memory.isRealization ? 'text-yellow-200/60' : 'text-white/50'}`}>
                     "{memory.reflection}"
                   </div>
                 </div>

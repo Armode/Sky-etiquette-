@@ -4,6 +4,7 @@ export interface Memory {
   timestamp: number;
   emotion?: string;
   reflection?: string;
+  isRealization?: boolean;
 }
 
 export interface CoreMemory {

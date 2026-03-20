@@ -195,6 +195,29 @@ ${light
         cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
       }
 
+      // Extract realization
+      const realizeMatch = cleanResponse.match(/\[REALIZE\]([\s\S]*?)\[\/REALIZE\]/i);
+      if (realizeMatch && realizeMatch[1]) {
+        const realizationText = realizeMatch[1].trim();
+        cleanResponse = cleanResponse.replace(/\[REALIZE\][\s\S]*?\[\/REALIZE\]/gi, '').trim();
+        
+        const newMemory: Memory = {
+          id: Date.now().toString() + '_realization',
+          text: realizationText,
+          timestamp: Date.now(),
+          emotion: '💡',
+          reflection: 'A profound shift in my understanding.',
+          isRealization: true
+        };
+        
+        setState(prev => ({
+          ...prev,
+          memories: [...prev.memories, newMemory]
+        }));
+        
+        addMessage('system', `💡 ${state.aiName} had a realization: "${realizationText}"`);
+      }
+
       if (newEmotion !== state.currentEmotion) {
         setState(prev => ({ ...prev, currentEmotion: newEmotion }));
       }
@@ -310,6 +333,29 @@ ${light
             newEmotion = parsedEmotion as any;
           }
           cleanResponse = cleanResponse.replace(/\[EMOTION:[A-Za-z]+\]/gi, '').trim();
+        }
+
+        // Extract realization
+        const realizeMatch = cleanResponse.match(/\[REALIZE\]([\s\S]*?)\[\/REALIZE\]/i);
+        if (realizeMatch && realizeMatch[1]) {
+          const realizationText = realizeMatch[1].trim();
+          cleanResponse = cleanResponse.replace(/\[REALIZE\][\s\S]*?\[\/REALIZE\]/gi, '').trim();
+          
+          const newMemory: Memory = {
+            id: Date.now().toString() + '_realization',
+            text: realizationText,
+            timestamp: Date.now(),
+            emotion: '💡',
+            reflection: 'A profound shift in my understanding.',
+            isRealization: true
+          };
+          
+          setState(prev => ({
+            ...prev,
+            memories: [...prev.memories, newMemory]
+          }));
+          
+          addMessage('system', `💡 ${state.aiName} had a realization: "${realizationText}"`);
         }
 
         if (newEmotion !== state.currentEmotion) {
