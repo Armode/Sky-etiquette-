@@ -59,11 +59,8 @@
           "description": "Current dream state."
         },
         "calendar": {
-          "type": "array",
-          "description": "Calendar events.",
-          "items": {
-            "type": "object"
-          }
+          "type": "object",
+          "description": "Calendar events."
         },
         "manifestations": {
           "type": "array",

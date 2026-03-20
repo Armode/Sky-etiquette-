@@ -63,7 +63,7 @@ service cloud.firestore {
              data.currentEmotion is string && data.currentEmotion.size() > 0 && data.currentEmotion.size() < 50 &&
              data.traits is list && data.traits.size() <= 100 &&
              data.dreamState is map &&
-             data.calendar is list && data.calendar.size() <= 1000 &&
+             data.calendar is map &&
              data.manifestations is list && data.manifestations.size() <= 1000;
     }
 

@@ -34,7 +34,8 @@ export default function App() {
     toggleEventCompletion,
     deleteEvent,
     showManifestations,
-    toggleManifestations
+    toggleManifestations,
+    signOut
   } = useGame();
 
   return (
@@ -75,6 +76,7 @@ export default function App() {
             onTriggerConversation={triggerAIConversation}
             isTyping={isTyping || state.phase === 'awakening'}
             messagesEndRef={messagesEndRef}
+            onSignOut={signOut}
           />
         )}
 

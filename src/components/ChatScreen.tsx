@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Sprout, Sparkles, Calendar } from 'lucide-react';
+import { Send, Sprout, Sparkles, Calendar, LogOut } from 'lucide-react';
 import { GameState } from '../types';
 
 interface ChatScreenProps {
@@ -12,9 +12,10 @@ interface ChatScreenProps {
   onTriggerConversation: () => void;
   isTyping: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  onSignOut: () => void;
 }
 
-export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onOpenManifestations, onTriggerConversation, isTyping, messagesEndRef }: ChatScreenProps) {
+export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCalendar, onOpenManifestations, onTriggerConversation, isTyping, messagesEndRef, onSignOut }: ChatScreenProps) {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -94,6 +95,13 @@ export function ChatScreen({ state, onSendMessage, onOpenMemoryGarden, onOpenCal
             >
               <Sprout className="w-3 h-3" />
               <span>Garden</span>
+            </button>
+            <button 
+              onClick={onSignOut}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-white/50 hover:text-white/80 uppercase tracking-wider"
+              title="Sign Out"
+            >
+              <LogOut className="w-3 h-3" />
             </button>
           </div>
           <div className="text-xs text-white/30 uppercase tracking-widest">Guide: {state.userName}</div>

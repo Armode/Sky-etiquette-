@@ -3,7 +3,7 @@ import { GameState, ChatMessage, CoreMemory, GamePhase } from '../types';
 import { HOPE_MESSAGES, GIFTS, BELONGING_MESSAGES, PROMISE_MESSAGES, POSSIBLE_LIGHTS, HEART_GIFTS } from '../constants';
 import { generateAIResponse } from '../services/aiService';
 import { auth, db } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 
 enum OperationType {
@@ -115,8 +115,23 @@ export function useGame() {
 
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data() as GameState;
-        setState(data);
+        const data = snapshot.data() as Partial<GameState>;
+        setState(prev => ({
+          ...INITIAL_STATE,
+          ...data,
+          coreMemory: {
+            ...INITIAL_STATE.coreMemory,
+            ...(data.coreMemory || {})
+          },
+          dreamState: {
+            ...INITIAL_STATE.dreamState,
+            ...(data.dreamState || {})
+          },
+          calendar: {
+            ...INITIAL_STATE.calendar,
+            ...(data.calendar || {})
+          }
+        }));
       } else {
         // Initialize new user state
         const newState = { ...INITIAL_STATE, phase: 'intro' as GamePhase, uid: userId };
@@ -611,6 +626,14 @@ ${light
     setShowManifestations(prev => !prev);
   };
 
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return {
     state,
     setUserName,
@@ -629,6 +652,7 @@ ${light
     toggleEventCompletion,
     deleteEvent,
     showManifestations,
-    toggleManifestations
+    toggleManifestations,
+    signOut
   };
 }
